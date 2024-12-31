@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Lunar New Year 2025</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .message {
+            z-index: 1;
+            font-size: 4rem;
+            text-align: center;
+            background: linear-gradient(90deg, #FFD700, #FF5733, #FF33FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #FFD700, 0 0 20px #FF5733;
+            }
+            to {
+                text-shadow: 0 0 20px #FF33FF, 0 0 40px #33FF57;
+            }
+        }
+        .snake {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            animation: float 3s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+
+        .card {
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 215, 0, 0.9);
+            color: #000;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            font-size: 1.5rem;
+            text-align: center;
+            animation: slideIn 6s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            0% {
+                transform: translateX(-50%) translateY(-100px);
+                opacity: 0;
+            }
+            25%, 75% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(-50%) translateY(50vh);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="message">Happy Lunar New Year 2025!</div>
+
+    
+    <img src="https://png.pngtree.com/recommend-works/png-clipart/20240824/ourlarge/pngtree-year-of-the-snake-lunar-new-year-happy-new-year-zodiac-png-image_13559414.png" alt="Snake Mascot" class="snake" id="snakeMascot">
+    <canvas id="fireworkCanvas"></canvas>
+
+    <script>
+        const newYearWishes = [
+            'Chúc các bạn năm nay thi đỗ đại học, đạt nguyện vọng 1 ',
+            'Luôn có niềm tin vào bản thân và sự nỗ lực của mình!',
+            'Nhiều thành công hơn, nhiều điểm 10 hơn',
+            'Chúc bạn luôn giữ vững tinh thần học tập và không ngừng tiến bộ!',
+            'Hãy cố gắng hết mình, tương lai tươi sáng đang chờ đón bạn!',
+            'Chúc bạn luôn tự tin và vượt qua mọi thử thách trong học tập!'
+        ];
+
+
+
+        const canvas = document.getElementById('fireworkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const explosionSound = new Audio('./nam_qua_da_lam_gi.mp3'); 
+
+        // play song
+        explosionSound.addEventListener('canplaythrough', () => {
+            explosionSound.play();
+        });
+
+        document.body.addEventListener('click', () => {
+            explosionSound.play();
+        });
+        
+ 
+        class Firework {
+            constructor(x, y, colors) {
+                this.x = x;
+                this.y = y;
+                this.colors = colors;
+                this.particles = [];
+                this.createParticles();
+            }
+
+            createParticles() {
+                const particleCount = 100; // Tăng số lượng hạt pháo hoa
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = Math.random() * 2 * Math.PI;
+                    const speed = Math.random() * 5 + 2; // Tăng tốc độ di chuyển của hạt pháo hoa
+                    this.particles.push({
+                        x: this.x,
+                        y: this.y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        alpha: 1,
+                        color: this.colors[Math.floor(Math.random() * this.colors.length)]
+                    });
+                }
+              // Phát âm thanh khi hạt pháo nổ
+            }
+
+            playExplosionSound() {
+                explosionSound.currentTime = 0;
+                explosionSound.play();
+            }
+
+            update() {
+                this.particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.03; // Tăng giảm tốc do trọng lực
+                    p.alpha -= 0.015; // Tăng tốc độ mất dần của hạt pháo hoa
+                });
+                this.particles = this.particles.filter(p => p.alpha > 0);
+            }
+
+            draw() {
+                this.particles.forEach(p => {
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        let fireworks = [];
+
+        function createRandomFirework() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height / 2;
+            const colors = ["#FF5733", "#FFD700", "#FF33FF", "#33FF57", "#33C1FF", "#FF33FF", "#FF5733", "#FFD700", "#FF33FF", "#33FF57", "#33C1FF", "#FF33FF"];
+            fireworks.push(new Firework(x, y, colors));
+        }
+
+        function createRandomCard() {
+            const randomIndex = Math.floor(Math.random() * newYearWishes.length);
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.textContent = newYearWishes[randomIndex];
+            card.style.top = `${Math.random() * 80}%`;
+            card.style.left = `${Math.random() * 80}%`;
+            document.body.appendChild(card);
+
+            setTimeout(() => {
+                card.remove();
+            }, 6000);
+        }
+
+        
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            fireworks.forEach(firework => {
+                firework.update();
+                firework.draw();
+            });
+
+            fireworks = fireworks.filter(firework => firework.particles.length > 0);
+
+            requestAnimationFrame(animate);
+        }
+
+        setInterval(createRandomFirework, 1000);
+        setInterval(createRandomCard, 5000);
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
